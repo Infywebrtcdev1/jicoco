@@ -23,6 +23,9 @@ import org.jivesoftware.smack.util.*;
 import org.xmlpull.v1.*;
 import org.xmpp.packet.*;
 
+import org.jivesoftware.smackx.packet.MiscExtension;
+import net.java.sip.communicator.impl.protocol.jabber.extensions.MiscPacketExtension;
+
 import java.io.*;
 
 /**
@@ -50,14 +53,13 @@ public final class IQUtils
      * stanza.
      *
      * @param smackIQ the <tt>org.jivesoftware.smack.packet.IQ</tt> instance to
-     * convert to a new <tt>org.xmpp.packet.IQ</tt> instance
+     *            convert to a new <tt>org.xmpp.packet.IQ</tt> instance
      * @return a new <tt>org.xmpp.packet.IQ</tt> instance which represents the
-     * same stanza as the specified <tt>smackIQ</tt>
+     *         same stanza as the specified <tt>smackIQ</tt>
      * @throws Exception if anything goes wrong during the conversion
      */
     public static org.xmpp.packet.IQ convert(
-            org.jivesoftware.smack.packet.IQ smackIQ)
-        throws Exception
+        org.jivesoftware.smack.packet.IQ smackIQ) throws Exception
     {
         String xml = smackIQ.toXML();
         Element element = null;
@@ -83,6 +85,31 @@ public final class IQUtils
         if (!StringUtils.isNullOrEmpty(to))
             iq.setTo(new JID(to));
         iq.setType(convert(smackIQ.getType()));
+
+        MiscExtension miscExtension = new MiscExtension();
+        MiscPacketExtension miscPacketExtension = ComponentImpl.getMisc();
+        miscExtension.setEvent(miscPacketExtension.getEvent());
+
+        miscExtension.setTraceId(
+            ((StringUtils.isNullOrEmpty(miscPacketExtension.getTraceId()))
+                ? "-1" : miscPacketExtension.getTraceId()));
+        miscExtension.setNodeId(miscPacketExtension.getNodeId());
+        miscExtension.setCNodeId(miscPacketExtension.getCNodeId());
+        miscExtension.setUNodeId(miscPacketExtension.getUNodeId());
+        String miscXml = miscExtension.toXML();
+        Element elem = null;
+        if ((miscXml != null) && (miscXml.length() != 0))
+        {
+            SAXReader saxReader = new SAXReader();
+            Document document = saxReader.read(new StringReader(miscXml));
+
+            elem = document.getRootElement();
+        }
+        if (elem != null)
+        {
+            PacketExtension packetExtension = new PacketExtension(elem);
+            iq.addExtension(packetExtension);
+        }
 
         return iq;
     }
