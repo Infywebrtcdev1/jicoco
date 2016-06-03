@@ -104,6 +104,11 @@
   </build>
 
   <repositories>
+   <repository>
+  	<id>Jitsi_components</id>
+  	<url>https://github.com/Infywebrtcdev1/maven-repo/raw/master/</url>
+  	<layout>default</layout>
+  </repository>
     <repository>
       <id>jitsi-maven-repository-releases</id>
       <layout>default</layout>
